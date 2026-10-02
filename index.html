@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TUTTI BISTRO — Revelion 2027</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="night"></div>
+  <div class="dust"></div>
+  <canvas id="fw"></canvas>
+  <div class="veil" id="veil"></div>
+
+  <div class="dock" id="dock">
+    <button type="button" id="previewBtn">Al doilea ecran</button>
+    <button type="button" id="hideBtn">Ascunde</button>
+    <button type="button" id="editBtn">Editează</button>
+    <label class="filebtn">Upload folder poze
+      <input id="folderTv" type="file" accept="image/*" webkitdirectory multiple>
+    </label>
+    <button type="button" id="slideBtn">Poze OFF</button>
+    <label>Mesaje auto
+      <select id="autoEvery">
+        <option value="15000">15 sec</option>
+        <option value="30000" selected>30 sec</option>
+        <option value="45000">45 sec</option>
+        <option value="60000">60 sec</option>
+      </select>
+    </label>
+    <button type="button" id="voiceTest">Test voce</button>
+    <button type="button" id="resetLayout">Reset</button>
+    <span id="folderInfo">0 poze</span>
+  </div>
+  <button type="button" id="showBtn" class="eye" hidden title="Arată comenzile">👁</button>
+  <button type="button" id="speakerBtn" class="speaker off" title="Voce on/off">🔇</button>
+  <button type="button" id="fsBtn" class="fs" title="Fullscreen">FS</button>
+
+  <div class="slidewin free" id="slideWin" data-key="slides">
+    <img id="slideImg" alt="">
+    <i class="handle"></i>
+    <i class="handle-e"></i>
+    <i class="handle-s"></i>
+  </div>
+
+  <div class="free" id="boxBrand" data-key="brand">
+    <div class="brand">TUTTI BISTRO</div>
+    <h1 class="show-title">REVELION 2027</h1>
+    <div class="sub" id="clock">până la miezul nopții · București</div>
+    <i class="handle"></i>
+    <i class="handle-e"></i>
+    <i class="handle-s"></i>
+  </div>
+
+  <div class="free" id="countWrap" data-key="count">
+    <div class="countdown" id="count">--:--:--</div>
+    <i class="handle"></i>
+    <i class="handle-e"></i>
+    <i class="handle-s"></i>
+  </div>
+
+  <div class="msg free" id="msg" data-key="msg">
+    <div class="who">TUTTI BISTRO</div>
+    <div class="text" id="text">La mulți ani 2027! Să fie cel mai bun an!</div>
+    <i class="handle"></i>
+    <i class="handle-e"></i>
+    <i class="handle-s"></i>
+  </div>
+
+  <div class="guestbox free" id="guestBox" data-key="guest">
+    <div class="tag">URARE INVITAT</div>
+    <div class="who" id="guestWho">așteptăm</div>
+    <div class="text" id="guestText">Mesajul rămâne până la următorul invitat.</div>
+    <i class="handle"></i>
+    <i class="handle-e"></i>
+    <i class="handle-s"></i>
+  </div>
+
+  <button type="button" id="wheelBtn" class="wheel-btn free" data-key="wheel" title="Ruleta">
+    <canvas id="wheelCanvas" width="300" height="300"></canvas>
+    <span id="wheelCount">0</span>
+    <i class="handle"></i>
+    <i class="handle-e"></i>
+    <i class="handle-s"></i>
+  </button>
+
+  <div class="tombola" id="tombola">
+    <div class="card">
+      <div class="brand">RULETĂ</div>
+      <canvas id="wheelBig" class="wheel-big" width="640" height="640"></canvas>
+      <div class="spin" id="spinName"></div>
+      <div class="win" id="winner">...</div>
+      <div id="prize">Un toast din partea casei</div>
+      <p class="hint">Spune la microfon numele. Apoi închide.</p>
+      <button type="button" id="closeWheel">Închide</button>
+    </div>
+  </div>
+
+  <div class="qr-corner free" id="qrBox" data-key="qr">
+    <div id="qr"></div>
+    <p>SCANEAZĂ<br>URARE + TOMBOLĂ</p>
+    <i class="handle"></i>
+    <i class="handle-e"></i>
+    <i class="handle-s"></i>
+  </div>
+
+  <div id="voice-unlock">
+    <div style="text-align:center">
+      <div style="font-size:64px">🔊</div>
+      <div class="brand">TUTTI BISTRO</div>
+      <h2 style="margin:8px 0 0;font-size:32px">Apasă pentru voce</h2>
+      <p style="opacity:.7">Urările se citesc în română după acest click. Difuzorul de sus rămâne off până îl pornești.</p>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="config.js"></script>
+  <script src="display.js"></script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+TUTTI BISTRO — Revelion 2027
+Deschide index.html pe laptopul de DJ (Chrome).
+
+1. Apasă o dată pe ecran ca să deblocheze vocea. Difuzorul de sus rămâne OFF până îl pornești tu.
+2. Editează = muți fiecare element. Colțul auriu schimbă lățimea ȘI înălțimea (free form), bara din dreapta doar lățimea, bara de jos doar înălțimea. Merge la poze, countdown, TUTTI BISTRO, mesaje, QR și ruletă. Textul crește odată cu chenarul.
+3. Al doilea ecran deschide preview pe monitorul 2. Butonul albastru FS scoate bara de adrese. Poți muta elementele și în fullscreen: ochiul arată comenzile, apoi Editează.
+4. Upload folder poze, apoi Poze ON. Fereastra de poze se mută și se scalează la fel.
+5. QR-ul duce la aplicația de telefon care merge deja. Orice mesaj nou pune automat numele în ruletă, fie 3, fie 100. Click pe roată = se deschide mare și extrage.
+6. Mesajele vechi de nuntă sunt filtrate și nu intră pe ecran sau în ruletă.
+7. Urările automate sunt doar de Revelion 2027. Nu există rând de nuntă.

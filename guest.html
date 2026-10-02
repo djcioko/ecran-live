@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Urare — TUTTI BISTRO Revelion 2027</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="guest-wrap">
+    <div class="brand">TUTTI BISTRO</div>
+    <h1>Revelion 2027</h1>
+    <p>Scrie o urare. Apare pe ecranul mare.</p>
+    <form id="f">
+      <input id="name" type="text" maxlength="32" placeholder="Numele tău" required>
+      <textarea id="msg" maxlength="140" rows="3" placeholder="Urarea ta pentru 2027" required></textarea>
+      <label class="toggle" style="justify-content:center;margin:12px 0">
+        <input id="tomb" type="checkbox"> Intră la tombolă
+      </label>
+      <button class="gold" type="submit">Trimite pe ecran</button>
+    </form>
+    <p class="ok" id="ok" hidden>Trimis. Uită-te la TV.</p>
+    <p class="warn" id="err"></p>
+  </div>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <script src="config.js"></script>
+  <script src="guest.js"></script>
+</body>
+</html>

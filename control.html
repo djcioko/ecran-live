@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Control — TUTTI BISTRO Revelion 2027</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="panel">
+    <div class="brand">TUTTI BISTRO · DJ</div>
+    <h1>Control Revelion 2027</h1>
+    <p class="warn" id="status">Deschide ecranul pe TV, apoi lasă fereastra asta pe laptop.</p>
+
+    <div class="grid">
+      <div class="card">
+        <div class="row"><strong>Ecran TV</strong></div>
+        <button class="gold" id="openTv">Deschide preview pe al doilea ecran</button>
+        <p style="font-size:13px;opacity:.75">După ce se deschide, trage fereastra pe TV și pune fullscreen (F11).</p>
+        <div class="row">
+          <label class="toggle"><input type="checkbox" id="tMsg" checked> Mesaje live</label>
+          <label class="toggle"><input type="checkbox" id="tNames"> Nume pe TV</label>
+        </div>
+        <div class="row">
+          <label class="toggle"><input type="checkbox" id="tTomb"> Tombolă</label>
+          <label class="toggle"><input type="checkbox" id="tSlide"> Slideshow fundal</label>
+        </div>
+        <div class="row">
+          <label class="toggle"><input type="checkbox" id="tQr" checked> QR pe TV</label>
+          <label class="toggle"><input type="checkbox" id="tVoice" checked> Voce română</label>
+        </div>
+        <label>Mesajul stă pe ecran</label>
+        <select id="hold">
+          <option value="30000" selected>30 secunde</option>
+          <option value="20000">20 secunde</option>
+          <option value="15000">15 secunde</option>
+          <option value="45000">45 secunde</option>
+        </select>
+      </div>
+
+      <div class="card">
+        <strong>Înscriere invitați</strong>
+        <p style="font-size:13px;opacity:.8">QR-ul duce la pagina de telefon. Numele intră la tombolă doar dacă tombola e ON și bifează pe telefon.</p>
+        <div id="qr"></div>
+        <input id="publicUrl" type="url" placeholder="Link public, ex. https://tutti.github.io/revelion/guest.html">
+        <button class="ghost" id="saveUrl" style="margin-top:8px">Actualizează QR</button>
+      </div>
+
+      <div class="card">
+        <strong>Folder poze — slideshow</strong>
+        <p style="font-size:13px;opacity:.8">Pozele rămân pe laptopul de DJ. Nu trec prin telefon. Pornește slideshow ca să se vadă în fundal.</p>
+        <input id="folder" type="file" accept="image/*" webkitdirectory multiple>
+        <div id="folderInfo" style="margin-top:8px;font-size:13px">Nicio poză încă.</div>
+      </div>
+
+      <div class="card">
+        <strong>Tombolă</strong>
+        <p style="font-size:13px;opacity:.8">Lista se umple din înscrierile cu bifă. Extragerea apare mare pe TV.</p>
+        <button class="gold" id="draw">Extrage câștigător</button>
+        <button class="ghost" id="hideDraw" style="margin-top:8px">Închide tombola pe TV</button>
+        <div id="pool" style="margin-top:10px;font-size:14px">0 înscriși</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+      <strong>Test mesaj (fără telefon)</strong>
+      <div class="row">
+        <input id="tn" type="text" placeholder="Nume" style="max-width:220px">
+        <input id="tm" type="text" placeholder="Urare">
+      </div>
+      <button class="gold" id="sendTest">Trimite pe TV</button>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="config.js"></script>
+  <script src="control.js"></script>
+</body>
+</html>

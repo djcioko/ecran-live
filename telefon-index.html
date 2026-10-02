@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Urare TUTTI BISTRO</title>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <style>
+    body { margin:0; background:#0a0a0a; color:#fff; font-family:Segoe UI, Arial, sans-serif; text-align:center; }
+    .box { padding:28px 16px; }
+    .brand { color:#f1c40f; letter-spacing:.35em; font-weight:700; }
+    input, textarea { width:100%; max-width:420px; padding:14px; margin:8px 0; border-radius:12px; border:1px solid #333; background:#1a1a1a; color:#fff; font-size:16px; box-sizing:border-box; }
+    button { background:#f1c40f; color:#000; border:0; border-radius:12px; padding:16px; font-weight:800; font-size:18px; width:100%; max-width:420px; }
+    #ok { display:none; color:#2ed573; margin-top:16px; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div class="brand">TUTTI BISTRO</div>
+    <h1>Revelion 2027</h1>
+    <p>Scrie urarea. Apare pe ecranul mare.</p>
+    <input id="nume" placeholder="Numele tău">
+    <textarea id="mesaj" rows="4" placeholder="Urarea ta"></textarea>
+    <button onclick="trimite()">Trimite pe ecran</button>
+    <p id="ok">Trimis. Uită-te la TV.</p>
+    <p id="err"></p>
+  </div>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const eventID = params.get("id") || "test_dj";
+    firebase.initializeApp({
+      apiKey: "AIzaSyCzbzObPl5-eErZ0DaghYHf3VC1awtuHCs",
+      authDomain: "felicitari-nunta.firebaseapp.com",
+      databaseURL: "https://felicitari-nunta-default-rtdb.firebaseio.com",
+      projectId: "felicitari-nunta",
+      appId: "1:102925718812:web:01f5ec325b8234133216d9"
+    });
+    const db = firebase.database();
+    function trimite() {
+      const author = document.getElementById("nume").value.trim();
+      const text = document.getElementById("mesaj").value.trim();
+      if (!author || !text) { document.getElementById("err").textContent = "Scrie numele și urarea."; return; }
+      const item = { author, text, name: author, at: Date.now() };
+      db.ref(eventID).push(item);
+      db.ref("tuuti2027/messages").push(item);
+      document.getElementById("ok").style.display = "block";
+      document.getElementById("mesaj").value = "";
+    }
+  </script>
+</body>
+</html>
