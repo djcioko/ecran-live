@@ -7,7 +7,9 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="night"></div>
+  <div class="night" id="night"></div>
+  <img id="bgPhoto" class="bgmedia" alt="" hidden>
+  <video id="bgVideo" class="bgmedia" autoplay muted loop playsinline hidden></video>
   <div class="dust"></div>
   <canvas id="fw"></canvas>
   <div class="veil" id="veil"></div>
@@ -16,6 +18,17 @@
     <button type="button" id="previewBtn">Al doilea ecran</button>
     <button type="button" id="hideBtn">Ascunde</button>
     <button type="button" id="editBtn">Editează</button>
+    <label>Fundal
+      <select id="bgSelect">
+        <option value="auriu" selected>Auriu</option>
+        <option value="sampanie">Șampanie</option>
+        <option value="cer">Cer</option>
+      </select>
+    </label>
+    <label class="filebtn">Upload fundal
+      <input id="bgFile" type="file" accept="image/*,video/*">
+    </label>
+    <button type="button" id="bgClear">Fundal off</button>
     <label class="filebtn">Upload folder poze
       <input id="folderTv" type="file" accept="image/*" webkitdirectory multiple>
     </label>
@@ -29,6 +42,7 @@
       </select>
     </label>
     <button type="button" id="voiceTest">Test voce</button>
+    <button type="button" id="resetWheelDock">Reset ruletă</button>
     <button type="button" id="resetLayout">Reset</button>
     <span id="folderInfo">0 poze</span>
   </div>
@@ -77,8 +91,8 @@
   </div>
 
   <button type="button" id="wheelBtn" class="wheel-btn free" data-key="wheel" title="Ruleta">
-    <canvas id="wheelCanvas" width="300" height="300"></canvas>
-    <span id="wheelCount">0</span>
+    <span id="wheelCount">0/10</span>
+    <canvas id="wheelCanvas" width="380" height="440"></canvas>
     <i class="handle"></i>
     <i class="handle-e"></i>
     <i class="handle-s"></i>
@@ -87,11 +101,12 @@
   <div class="tombola" id="tombola">
     <div class="card">
       <div class="brand">RULETĂ</div>
-      <canvas id="wheelBig" class="wheel-big" width="640" height="640"></canvas>
+      <canvas id="wheelBig" class="wheel-big" width="760" height="860"></canvas>
       <div class="spin" id="spinName"></div>
       <div class="win" id="winner">...</div>
       <div id="prize">Un toast din partea casei</div>
-      <p class="hint">Spune la microfon numele. Apoi închide.</p>
+      <p class="hint">Maxim 10 persoane. Reset golește roata pentru următorii.</p>
+      <button type="button" id="resetWheel">Reset ruletă</button>
       <button type="button" id="closeWheel">Închide</button>
     </div>
   </div>
