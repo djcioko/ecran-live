@@ -37,6 +37,7 @@ let slideUrls = [];
 let slideIdx = 0;
 let db = null;
 const wheelNames = [];
+const WHEEL_MAX = 10;
 const seenMsg = new Set();
 const layoutKey = "tutti-layout-2027-size";
 
@@ -59,13 +60,9 @@ function bootFirebase() {
 
 function listenPath(path) {
   const ref = db.ref(path);
-  ref.limitToLast(200).once("value", (snap) => {
+  ref.limitToLast(30).once("value", (snap) => {
     const old = new Set();
-    snap.forEach((c) => {
-      old.add(c.key);
-      rememberName(c.val());
-    });
-    redrawWheels(0);
+    snap.forEach((c) => old.add(c.key));
     ref.on("child_added", (c) => {
       if (old.has(c.key) || seenMsg.has(path + c.key)) return;
       seenMsg.add(path + c.key);
@@ -80,9 +77,21 @@ function rememberName(v) {
   const name = String(v.name || v.author || "").trim();
   if (!name || name.length > 32) return;
   if (isWedding(text, name)) return;
+  if (wheelNames.includes(name)) return;
+  if (wheelNames.length >= WHEEL_MAX) return;
   wheelNames.push(name);
   const badge = document.getElementById("wheelCount");
-  if (badge) badge.textContent = wheelNames.length;
+  if (badge) badge.textContent = wheelNames.length + "/" + WHEEL_MAX;
+}
+
+function resetWheel() {
+  wheelNames.length = 0;
+  const badge = document.getElementById("wheelCount");
+  if (badge) badge.textContent = "0/" + WHEEL_MAX;
+  redrawWheels(0);
+  const box = document.getElementById("tombola");
+  if (box) box.classList.remove("on");
+  spinning = false;
 }
 
 function takeFresh(snap) {
@@ -239,7 +248,9 @@ function tick() {
   const m = Math.floor((diff % 3600000) / 60000);
   const s = Math.floor((diff % 60000) / 1000);
   const pad = (n) => String(n).padStart(2, "0");
-  count.textContent = pad(h) + ":" + pad(m) + ":" + pad(s);
+  const d = Math.floor(h / 24);
+  const hh = h % 24;
+  count.textContent = d > 0 ? d + "z " + pad(hh) + ":" + pad(m) + ":" + pad(s) : pad(h) + ":" + pad(m) + ":" + pad(s);
   clock.textContent = "până la miezul nopții · București";
 }
 setInterval(tick, 250);
@@ -266,7 +277,21 @@ const prizes = [
   "Vine la pupitru și dă play",
   "Alege următorul stil, 2 minute"
 ];
-const sliceColors = ["#9b1b1b", "#141414", "#c9a227", "#6b1010", "#1c1c1c", "#e0b84a"];
+const sliceColors = ["#e74c3c", "#f4f7fb", "#7eb6e8", "#f5b942"];
+const sliceInk = ["#fff", "#e74c3c", "#16324f", "#16324f"];
+
+function drawStar(c, cx, cy, r) {
+  c.beginPath();
+  for (let i = 0; i < 5; i++) {
+    const a = -Math.PI / 2 + i * (Math.PI * 2 / 5);
+    const b = a + Math.PI / 5;
+    c.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+    c.lineTo(cx + Math.cos(b) * r * 0.42, cy + Math.sin(b) * r * 0.42);
+  }
+  c.closePath();
+  c.fillStyle = "#fff";
+  c.fill();
+}
 
 function drawWheel(canvas, names, angle) {
   if (!canvas) return;
@@ -274,56 +299,84 @@ function drawWheel(canvas, names, angle) {
   const w = canvas.width;
   const h = canvas.height;
   const cx = w / 2;
-  const cy = h / 2;
-  const r = Math.min(w, h) / 2 - 8;
+  const cy = h / 2 + 8;
+  const r = Math.min(w, h) / 2 - 28;
   c.clearRect(0, 0, w, h);
+
+  c.fillStyle = "#2f6fed";
   c.beginPath();
-  c.arc(cx, cy, r + 6, 0, Math.PI * 2);
-  c.fillStyle = "#d4af37";
+  c.moveTo(cx - r * 0.28, cy + r + 8);
+  c.lineTo(cx + r * 0.28, cy + r + 8);
+  c.lineTo(cx + r * 0.55, cy + r + 34);
+  c.lineTo(cx - r * 0.55, cy + r + 34);
+  c.closePath();
   c.fill();
-  const bulbs = 18;
-  for (let i = 0; i < bulbs; i++) {
-    const a = (Math.PI * 2 * i) / bulbs - Math.PI / 2;
+  c.beginPath();
+  c.roundRect(cx - r * 0.62, cy + r + 30, r * 1.24, 16, 8);
+  c.fill();
+
+  c.beginPath();
+  c.arc(cx, cy, r + 16, 0, Math.PI * 2);
+  c.fillStyle = "#2f6fed";
+  c.fill();
+  c.beginPath();
+  c.arc(cx, cy, r + 8, 0, Math.PI * 2);
+  c.fillStyle = "#1d4ed8";
+  c.fill();
+
+  const dots = 16;
+  for (let i = 0; i < dots; i++) {
+    const a = (Math.PI * 2 * i) / dots - Math.PI / 2;
     c.beginPath();
-    c.arc(cx + Math.cos(a) * (r + 2), cy + Math.sin(a) * (r + 2), 4.2, 0, Math.PI * 2);
-    c.fillStyle = i % 2 ? "#fff6c8" : "#7a1d1d";
+    c.arc(cx + Math.cos(a) * (r + 12), cy + Math.sin(a) * (r + 12), 4.5, 0, Math.PI * 2);
+    c.fillStyle = ["#e74c3c", "#f5b942", "#7eb6e8", "#fff"][i % 4];
     c.fill();
   }
-  const list = names.length ? names : ["TUTTI"];
+
+  const list = [];
+  for (let i = 0; i < WHEEL_MAX; i++) list.push(names[i] || "liber");
   const slice = (Math.PI * 2) / list.length;
   list.forEach((name, i) => {
     c.beginPath();
     c.moveTo(cx, cy);
-    c.arc(cx, cy, r - 8, angle + i * slice, angle + (i + 1) * slice);
+    c.arc(cx, cy, r - 2, angle + i * slice, angle + (i + 1) * slice);
     c.closePath();
     c.fillStyle = sliceColors[i % sliceColors.length];
     c.fill();
-    c.strokeStyle = "rgba(255,255,255,.35)";
-    c.lineWidth = 1;
+    c.strokeStyle = "#fff";
+    c.lineWidth = 3;
     c.stroke();
     c.save();
     c.translate(cx, cy);
     c.rotate(angle + i * slice + slice / 2);
-    c.fillStyle = "#fff8dc";
-    const font = Math.max(9, Math.min(22, (r / Math.max(list.length, 6)) * 1.35));
-    c.font = "700 " + font + "px Segoe UI";
+    c.fillStyle = names[i] ? sliceInk[i % sliceInk.length] : "rgba(22,50,79,.35)";
+    const font = Math.max(14, Math.min(26, r / 8));
+    c.font = "800 " + font + "px Segoe UI";
     c.textAlign = "right";
-    c.fillText(String(name).slice(0, 16), r - 22, font * 0.35);
+    c.fillText(String(name).slice(0, 12), r - 34, font * 0.32);
     c.restore();
   });
+
   c.beginPath();
-  c.arc(cx, cy, r * 0.18, 0, Math.PI * 2);
-  const hub = c.createRadialGradient(cx, cy, 4, cx, cy, r * 0.18);
-  hub.addColorStop(0, "#fff3c4");
-  hub.addColorStop(1, "#8a6a12");
-  c.fillStyle = hub;
+  c.arc(cx, cy, r * 0.2, 0, Math.PI * 2);
+  c.fillStyle = "#2f6fed";
   c.fill();
   c.beginPath();
-  c.moveTo(cx, 10);
-  c.lineTo(cx - 12, 34);
-  c.lineTo(cx + 12, 34);
-  c.closePath();
+  c.arc(cx, cy, r * 0.16, 0, Math.PI * 2);
+  c.strokeStyle = "#fff";
+  c.lineWidth = 4;
+  c.stroke();
+  drawStar(c, cx, cy, r * 0.1);
+
+  c.beginPath();
+  c.arc(cx, cy - r - 22, 8, 0, Math.PI * 2);
   c.fillStyle = "#e74c3c";
+  c.fill();
+  c.beginPath();
+  c.moveTo(cx, cy - r + 8);
+  c.lineTo(cx - 12, cy - r - 16);
+  c.lineTo(cx + 12, cy - r - 16);
+  c.closePath();
   c.fill();
 }
 
@@ -350,7 +403,7 @@ document.getElementById("wheelBtn").onclick = () => {
   winner.textContent = "...";
   document.getElementById("spinName").textContent = "se învârte";
   const idx = Math.floor(Math.random() * wheelNames.length);
-  const slice = (Math.PI * 2) / wheelNames.length;
+  const slice = (Math.PI * 2) / WHEEL_MAX;
   const stop = -idx * slice - slice / 2 - Math.PI / 2;
   const start = performance.now();
   const extra = Math.PI * 8;
@@ -376,6 +429,12 @@ document.getElementById("closeWheel").onclick = () => {
   document.getElementById("tombola").classList.remove("on");
   spinning = false;
 };
+document.getElementById("resetWheel").onclick = (ev) => {
+  ev.stopPropagation();
+  resetWheel();
+};
+const resetWheelDock = document.getElementById("resetWheelDock");
+if (resetWheelDock) resetWheelDock.onclick = resetWheel;
 
 const canvas = document.getElementById("fw");
 const ctx = canvas.getContext("2d");
@@ -394,7 +453,7 @@ function burst() {
   }
 }
 function frame() {
-  ctx.fillStyle = "rgba(7,6,12,0.22)";
+  ctx.fillStyle = "rgba(20,12,36,0.18)";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   parts = parts.filter((p) => p.life > 0);
   parts.forEach((p) => {
@@ -527,6 +586,45 @@ document.getElementById("resetLayout").onclick = () => {
   });
   ch.postMessage({ type: "layout", layout: {} });
 };
+
+const night = document.getElementById("night");
+const bgPhoto = document.getElementById("bgPhoto");
+const bgVideo = document.getElementById("bgVideo");
+function setTheme(name) {
+  night.className = "night " + name;
+  document.body.style.background = "";
+}
+function clearCustomBg() {
+  bgPhoto.hidden = true;
+  bgPhoto.removeAttribute("src");
+  bgVideo.hidden = true;
+  bgVideo.pause();
+  bgVideo.removeAttribute("src");
+  bgVideo.load();
+}
+document.getElementById("bgSelect").addEventListener("change", (ev) => {
+  clearCustomBg();
+  setTheme(ev.target.value);
+});
+document.getElementById("bgFile").addEventListener("change", (ev) => {
+  const file = ev.target.files && ev.target.files[0];
+  if (!file) return;
+  const url = URL.createObjectURL(file);
+  clearCustomBg();
+  if (file.type.startsWith("video/")) {
+    bgVideo.src = url;
+    bgVideo.hidden = false;
+    bgVideo.play().catch(() => {});
+  } else {
+    bgPhoto.src = url;
+    bgPhoto.hidden = false;
+  }
+});
+document.getElementById("bgClear").onclick = () => {
+  clearCustomBg();
+  setTheme(document.getElementById("bgSelect").value || "auriu");
+};
+setTheme("auriu");
 
 document.getElementById("folderTv").addEventListener("change", async (ev) => {
   const files = [...ev.target.files].filter((f) => f.type.startsWith("image/")).slice(0, 40);
