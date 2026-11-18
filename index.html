@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TUTTI BISTRO — Revelion 2027</title>
+  <title>Event Board</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="night" id="night"></div>
-  <img id="bgPhoto" class="bgmedia" alt="" hidden>
-  <video id="bgVideo" class="bgmedia" autoplay muted loop playsinline hidden></video>
+  <img id="bgPhoto" class="bgmedia" alt="">
+  <video id="bgVideo" class="bgmedia" autoplay muted loop playsinline></video>
   <div class="dust"></div>
   <canvas id="fw"></canvas>
   <div class="veil" id="veil"></div>
@@ -17,7 +17,8 @@
   <div class="dock" id="dock">
     <button type="button" id="previewBtn">Al doilea ecran</button>
     <button type="button" id="hideBtn">Ascunde</button>
-    <button type="button" id="editBtn">Editează</button>
+    <button type="button" id="editBtn">Editează layout</button>
+    <button type="button" id="settingsBtn">Setări text</button>
     <label>Fundal
       <select id="bgSelect">
         <option value="auriu" selected>Auriu</option>
@@ -26,7 +27,7 @@
       </select>
     </label>
     <label class="filebtn">Upload fundal
-      <input id="bgFile" type="file" accept="image/*,video/*">
+      <input id="bgFile" type="file" accept="image/*,video/mp4,video/webm,video/quicktime">
     </label>
     <button type="button" id="bgClear">Fundal off</button>
     <label class="filebtn">Upload folder poze
@@ -58,9 +59,9 @@
   </div>
 
   <div class="free" id="boxBrand" data-key="brand">
-    <div class="brand">TUTTI BISTRO</div>
-    <h1 class="show-title">REVELION 2027</h1>
-    <div class="sub" id="clock">până la miezul nopții · București</div>
+    <div class="brand" id="evBrand">BRAND</div>
+    <h1 class="show-title" id="evTitle">EVENIMENT</h1>
+    <div class="sub" id="clock">subtitlu</div>
     <i class="handle"></i>
     <i class="handle-e"></i>
     <i class="handle-s"></i>
@@ -74,15 +75,15 @@
   </div>
 
   <div class="msg free" id="msg" data-key="msg">
-    <div class="who">TUTTI BISTRO</div>
-    <div class="text" id="text">La mulți ani 2027! Să fie cel mai bun an!</div>
+    <div class="who" id="msgWho">MESAJ</div>
+    <div class="text" id="text">…</div>
     <i class="handle"></i>
     <i class="handle-e"></i>
     <i class="handle-s"></i>
   </div>
 
   <div class="guestbox free" id="guestBox" data-key="guest">
-    <div class="tag">URARE INVITAT</div>
+    <div class="tag" id="guestTag">URARE INVITAT</div>
     <div class="who" id="guestWho">așteptăm</div>
     <div class="text" id="guestText">Mesajul rămâne până la următorul invitat.</div>
     <i class="handle"></i>
@@ -113,7 +114,7 @@
 
   <div class="qr-corner free" id="qrBox" data-key="qr">
     <div id="qr"></div>
-    <p>SCANEAZĂ<br>URARE + TOMBOLĂ</p>
+    <p id="qrLines">SCANEAZĂ<br>URARE + TOMBOLĂ</p>
     <i class="handle"></i>
     <i class="handle-e"></i>
     <i class="handle-s"></i>
@@ -122,9 +123,29 @@
   <div id="voice-unlock">
     <div style="text-align:center">
       <div style="font-size:64px">🔊</div>
-      <div class="brand">TUTTI BISTRO</div>
+      <div class="brand" id="voiceBrand">EVENT BOARD</div>
       <h2 style="margin:8px 0 0;font-size:32px">Apasă pentru voce</h2>
       <p style="opacity:.7">Urările se citesc în română după acest click. Difuzorul de sus rămâne off până îl pornești.</p>
+    </div>
+  </div>
+
+  <div id="settingsPanel" class="settings" hidden>
+    <div class="settings-card">
+      <h2>Setări eveniment</h2>
+      <p class="settings-hint">Se salvează pe acest laptop. Schimbi local, titlu, dată/oră — fără Revelion fix.</p>
+      <label>Nume local / brand<input id="setBrand" type="text" placeholder="ex. Restaurant X"></label>
+      <label>Titlu eveniment<input id="setTitle" type="text" placeholder="ex. MAJORAT ANDREEA"></label>
+      <label>Subtitlu<input id="setSub" type="text" placeholder="ex. sâmbătă · sala mare"></label>
+      <label>Data și ora evenimentului (countdown)<input id="setTarget" type="datetime-local"></label>
+      <label>Text când ajunge la zero<input id="setZero" type="text" placeholder="ex. La mulți ani!"></label>
+      <label>Etichetă mesaj jos<input id="setMsgWho" type="text" placeholder="MESAJ"></label>
+      <label>Etichetă cutie invitat<input id="setGuestTag" type="text" placeholder="URARE INVITAT"></label>
+      <label>Text QR linia 1<input id="setQr1" type="text" placeholder="SCANEAZĂ"></label>
+      <label>Text QR linia 2<input id="setQr2" type="text" placeholder="URARE + TOMBOLĂ"></label>
+      <div class="settings-actions">
+        <button type="button" id="setSave" class="gold">Salvează</button>
+        <button type="button" id="setClose" class="ghost">Închide</button>
+      </div>
     </div>
   </div>
 
