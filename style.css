@@ -45,7 +45,33 @@ a { color: var(--gold); }
 .bgmedia {
   position: fixed; inset: 0; z-index: 1; width: 100%; height: 100%;
   object-fit: cover; pointer-events: none;
+  display: none;
 }
+.bgmedia.on { display: block; }
+body.has-custom-bg .night { opacity: 0; }
+body.has-custom-bg .dust { opacity: 0.12; }
+.settings {
+  position: fixed; inset: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,.72); padding: 16px;
+}
+.settings[hidden] { display: none !important; }
+.settings-card {
+  width: min(520px, 96vw); max-height: 90vh; overflow: auto;
+  background: #141018; border: 1px solid rgba(241,196,15,.4);
+  border-radius: 18px; padding: 20px 22px; color: #fff;
+}
+.settings-card h2 { margin: 0 0 6px; font-size: 22px; color: #f1c40f; }
+.settings-hint { margin: 0 0 14px; font-size: 13px; opacity: .75; }
+.settings-card label {
+  display: block; font-size: 12px; font-weight: 700; margin: 10px 0 4px;
+}
+.settings-card input {
+  width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #333;
+  background: #1a1a1a; color: #fff; font-size: 15px;
+}
+.settings-actions { display: flex; gap: 10px; margin-top: 16px; }
+.settings-actions button { flex: 1; }
 .slidewin {
   position: fixed; z-index: 5; left: 18%; top: 22%;
   width: 420px; height: 280px; border-radius: 18px; overflow: hidden;
@@ -180,6 +206,9 @@ body.editing .free .handle-s {
 .veil {
   position: fixed; inset: 0; z-index: 4; pointer-events: none;
   background: linear-gradient(to top, rgba(0,0,0,.45), rgba(0,0,0,.08) 42%, rgba(0,0,0,.28));
+}
+body.has-custom-bg .veil {
+  background: linear-gradient(to top, rgba(0,0,0,.35), rgba(0,0,0,.05) 50%, rgba(0,0,0,.2));
 }
 .brand {
   font-family: Georgia, "Times New Roman", serif;
