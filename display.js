@@ -1,26 +1,97 @@
 const ch = new BroadcastChannel("tuuti-revelion-2027");
-const urari = [
-  "La mulți ani 2027! Să fie cel mai bun an!",
-  "Să curgă șampania și norocul!",
-  "2027 aduce bogăție și iubire maximă!",
-  "TUTTI BISTRO, sunteți gata? 2027 începe acum!",
-  "Fie ca noul an să vă aducă tot ce ați visat!",
-  "Sănătate, fraților! 2027 să fie cu bani!",
-  "Bani, iubire și vacanțe de lux în 2027!",
-  "Anul acesta este despre succesul tău!",
-  "Să străluciți ca artificiile de pe cer!",
-  "Fericire la maxim pentru toată lumea!",
-  "Un pahar sus pentru un 2027 epic!",
-  "Norocul să vă urmărească peste tot!",
-  "Pace în suflet și belșug în portofel!",
-  "La mulți ani 2027! Forță și energie!",
-  "Să fie un an cu zero griji!",
-  "Începeți 2027 cu încredere!",
-  "Cele mai frumoase amintiri se scriu acum!",
-  "Să aveți parte de lumină!",
-  "Muzică, dans și voie bună toată noaptea!",
-  "2027 - un capitol nou, o victorie nouă!"
+const SETTINGS_KEY = "event-board-settings-v1";
+const baseEV = window.EVENT || {};
+let EV = Object.assign({}, baseEV);
+try {
+  const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "null");
+  if (saved && typeof saved === "object") Object.assign(EV, saved);
+} catch (e) {}
+let urari = Array.isArray(EV.wishes) && EV.wishes.length ? EV.wishes.slice() : [
+  "La mulți ani! Să fiți fericiți și sănătoși!",
+  "Să curgă șampania și voie bună!",
+  "Un pahar sus pentru voi!",
+  "Să fie o seară de neuitat!"
 ];
+
+function applyEventConfig() {
+  const brand = (EV.brand || "").trim();
+  const title = (EV.title || "EVENIMENT").trim();
+  const sub = (EV.subtitle || "").trim();
+  const set = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val == null ? "" : val;
+  };
+  set("evBrand", brand || " ");
+  set("evTitle", title);
+  set("clock", sub);
+  set("msgWho", (EV.msgWho || "MESAJ").trim() || "MESAJ");
+  set("guestTag", (EV.guestTag || "URARE INVITAT").trim());
+  set("guestWho", (EV.guestWho || "așteptăm").trim());
+  set("guestText", (EV.guestText || "Mesajul rămâne până la următorul invitat.").trim());
+  set("voiceBrand", brand || title || "Event Board");
+  const qr = document.getElementById("qrLines");
+  if (qr) qr.innerHTML = ((EV.qrLine1 || "SCANEAZĂ").trim()) + "<br>" + ((EV.qrLine2 || "URARE").trim());
+  document.title = (brand ? brand + " — " : "") + title;
+  const first = urari[0];
+  if (first) {
+    const t = document.getElementById("text");
+    if (t) t.textContent = first;
+  }
+}
+
+function toDatetimeLocalValue(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "";
+  const pad = (n) => String(n).padStart(2, "0");
+  return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + "T" + pad(d.getHours()) + ":" + pad(d.getMinutes());
+}
+
+function openSettings() {
+  document.getElementById("setBrand").value = EV.brand || "";
+  document.getElementById("setTitle").value = EV.title || "";
+  document.getElementById("setSub").value = EV.subtitle || "";
+  document.getElementById("setTarget").value = toDatetimeLocalValue(EV.target);
+  document.getElementById("setZero").value = EV.zeroText || "";
+  document.getElementById("setMsgWho").value = EV.msgWho || "MESAJ";
+  document.getElementById("setGuestTag").value = EV.guestTag || "URARE INVITAT";
+  document.getElementById("setQr1").value = EV.qrLine1 || "SCANEAZĂ";
+  document.getElementById("setQr2").value = EV.qrLine2 || "URARE + TOMBOLĂ";
+  document.getElementById("settingsPanel").hidden = false;
+}
+
+function saveSettings() {
+  const localVal = document.getElementById("setTarget").value;
+  let target = "";
+  if (localVal) {
+    const d = new Date(localVal);
+    if (!isNaN(d.getTime())) target = d.toISOString();
+  }
+  EV.brand = document.getElementById("setBrand").value.trim();
+  EV.title = document.getElementById("setTitle").value.trim() || "EVENIMENT";
+  EV.subtitle = document.getElementById("setSub").value.trim();
+  EV.target = target;
+  EV.zeroText = document.getElementById("setZero").value.trim() || "Să înceapă petrecerea!";
+  EV.msgWho = document.getElementById("setMsgWho").value.trim() || "MESAJ";
+  EV.guestTag = document.getElementById("setGuestTag").value.trim() || "URARE INVITAT";
+  EV.qrLine1 = document.getElementById("setQr1").value.trim() || "SCANEAZĂ";
+  EV.qrLine2 = document.getElementById("setQr2").value.trim() || "URARE";
+  try {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({
+      brand: EV.brand,
+      title: EV.title,
+      subtitle: EV.subtitle,
+      target: EV.target,
+      zeroText: EV.zeroText,
+      msgWho: EV.msgWho,
+      guestTag: EV.guestTag,
+      qrLine1: EV.qrLine1,
+      qrLine2: EV.qrLine2
+    }));
+  } catch (e) {}
+  applyEventConfig();
+  document.getElementById("settingsPanel").hidden = true;
+}
 
 const state = {
   messages: true,
@@ -136,7 +207,8 @@ function unlockVoice() {
   voiceReady = true;
   if (!window.speechSynthesis) return;
   pickVoice();
-  const warm = new SpeechSynthesisUtterance("TUTTI BISTRO.");
+  const label = (EV.brand || EV.title || "Voce").trim();
+  const warm = new SpeechSynthesisUtterance(label + ".");
   warm.lang = "ro-RO";
   if (roVoice) warm.voice = roVoice;
   speechSynthesis.cancel();
@@ -165,7 +237,8 @@ document.getElementById("speakerBtn").onclick = () => {
     voiceReady = true;
     const box = document.getElementById("voice-unlock");
     if (box) box.style.display = "none";
-    speak("Voce pornită. TUTTI BISTRO.");
+    const label = (EV.brand || EV.title || "").trim();
+    speak(label ? ("Voce pornită. " + label + ".") : "Voce pornită.");
   }
 };
 
@@ -235,13 +308,21 @@ function paintSlide() {
 setInterval(paintSlide, 8000);
 
 function tick() {
-  const target = new Date("2027-01-01T00:00:00+02:00").getTime();
-  const diff = target - Date.now();
   const clock = document.getElementById("clock");
   const count = document.getElementById("count");
+  if (clock) clock.textContent = EV.subtitle || "";
+  if (!EV.target) {
+    count.textContent = "--:--:--";
+    return;
+  }
+  const target = new Date(EV.target).getTime();
+  if (isNaN(target)) {
+    count.textContent = "--:--:--";
+    return;
+  }
+  const diff = target - Date.now();
   if (diff <= 0) {
-    count.textContent = "2027";
-    clock.textContent = "LA MULȚI ANI";
+    count.textContent = EV.zeroText || "START";
     return;
   }
   const h = Math.floor(diff / 3600000);
@@ -251,7 +332,6 @@ function tick() {
   const d = Math.floor(h / 24);
   const hh = h % 24;
   count.textContent = d > 0 ? d + "z " + pad(hh) + ":" + pad(m) + ":" + pad(s) : pad(h) + ":" + pad(m) + ":" + pad(s);
-  clock.textContent = "până la miezul nopții · București";
 }
 setInterval(tick, 250);
 tick();
@@ -453,7 +533,9 @@ function burst() {
   }
 }
 function frame() {
-  ctx.fillStyle = "rgba(20,12,36,0.18)";
+  ctx.fillStyle = document.body.classList.contains("has-custom-bg")
+    ? "rgba(10,8,20,0.06)"
+    : "rgba(20,12,36,0.14)";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   parts = parts.filter((p) => p.life > 0);
   parts.forEach((p) => {
@@ -591,16 +673,16 @@ const night = document.getElementById("night");
 const bgPhoto = document.getElementById("bgPhoto");
 const bgVideo = document.getElementById("bgVideo");
 function setTheme(name) {
-  night.className = "night " + name;
-  document.body.style.background = "";
+  night.className = "night " + (name || "auriu");
 }
 function clearCustomBg() {
-  bgPhoto.hidden = true;
+  document.body.classList.remove("has-custom-bg");
+  bgPhoto.classList.remove("on");
   bgPhoto.removeAttribute("src");
-  bgVideo.hidden = true;
+  bgVideo.classList.remove("on");
   bgVideo.pause();
   bgVideo.removeAttribute("src");
-  bgVideo.load();
+  try { bgVideo.load(); } catch (e) {}
 }
 document.getElementById("bgSelect").addEventListener("change", (ev) => {
   clearCustomBg();
@@ -611,13 +693,17 @@ document.getElementById("bgFile").addEventListener("change", (ev) => {
   if (!file) return;
   const url = URL.createObjectURL(file);
   clearCustomBg();
+  document.body.classList.add("has-custom-bg");
   if (file.type.startsWith("video/")) {
     bgVideo.src = url;
-    bgVideo.hidden = false;
+    bgVideo.classList.add("on");
+    bgVideo.muted = true;
+    bgVideo.loop = true;
+    bgVideo.playsInline = true;
     bgVideo.play().catch(() => {});
   } else {
     bgPhoto.src = url;
-    bgPhoto.hidden = false;
+    bgPhoto.classList.add("on");
   }
 });
 document.getElementById("bgClear").onclick = () => {
@@ -625,6 +711,12 @@ document.getElementById("bgClear").onclick = () => {
   setTheme(document.getElementById("bgSelect").value || "auriu");
 };
 setTheme("auriu");
+
+document.getElementById("settingsBtn").onclick = openSettings;
+document.getElementById("setSave").onclick = saveSettings;
+document.getElementById("setClose").onclick = () => {
+  document.getElementById("settingsPanel").hidden = true;
+};
 
 document.getElementById("folderTv").addEventListener("change", async (ev) => {
   const files = [...ev.target.files].filter((f) => f.type.startsWith("image/")).slice(0, 40);
@@ -698,5 +790,8 @@ document.getElementById("voiceTest").onclick = () => {
   state.voice = true;
   document.getElementById("speakerBtn").textContent = "🔊";
   document.getElementById("speakerBtn").classList.remove("off");
-  speak(document.getElementById("text").textContent || "La mulți ani 2027, TUTTI BISTRO.");
+  speak(document.getElementById("text").textContent || ((EV.brand || "") + " " + (EV.title || "")).trim() || "La mulți ani!");
 };
+
+applyEventConfig();
+
