@@ -6,16 +6,19 @@ try {
   const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "null");
   if (saved && typeof saved === "object") Object.assign(EV, saved);
 } catch (e) {}
+// Always prefer wishes from config.js (EVENT) for this event
+if (Array.isArray(baseEV.wishes) && baseEV.wishes.length) {
+  EV.wishes = baseEV.wishes.slice();
+}
 let urari = Array.isArray(EV.wishes) && EV.wishes.length ? EV.wishes.slice() : [
-  "La mulți ani! Să fiți fericiți și sănătoși!",
-  "Să curgă șampania și voie bună!",
-  "Un pahar sus pentru voi!",
-  "Să fie o seară de neuitat!"
+  "La mulți ani, Bianca!",
+  "Sărbătorim majoratul Biancăi!",
+  "La mulți ani! Voie bună toată noaptea!"
 ];
 
 function applyEventConfig() {
   const brand = (EV.brand || "").trim();
-  const title = (EV.title || "EVENIMENT").trim();
+  const title = (EV.title || "MAJORAT BIANCA").trim();
   const sub = (EV.subtitle || "").trim();
   const set = (id, val) => {
     const el = document.getElementById(id);
@@ -32,6 +35,7 @@ function applyEventConfig() {
   const qr = document.getElementById("qrLines");
   if (qr) qr.innerHTML = ((EV.qrLine1 || "SCANEAZĂ").trim()) + "<br>" + ((EV.qrLine2 || "URARE").trim());
   document.title = (brand ? brand + " — " : "") + title;
+  urari = Array.isArray(EV.wishes) && EV.wishes.length ? EV.wishes.slice() : urari;
   const first = urari[0];
   if (first) {
     const t = document.getElementById("text");
@@ -257,7 +261,7 @@ function showMessage(item) {
   }
   document.getElementById("text").textContent = item.text;
   speak(item.text);
-  burst();
+  if (typeof burst === "function") burst();
 }
 
 async function pump() {
@@ -274,8 +278,10 @@ async function pump() {
 function wait(ms) { return new Promise((r) => setTimeout(r, ms)); }
 
 function applyState() {
-  document.getElementById("qrBox").hidden = !state.qr;
-  document.getElementById("slideWin").classList.toggle("on", state.slides && slideUrls.length > 0);
+  const qrBox = document.getElementById("qrBox");
+  if (qrBox) qrBox.hidden = !state.qr;
+  const slideWin = document.getElementById("slideWin");
+  if (slideWin) slideWin.classList.toggle("on", state.slides && slideUrls.length > 0);
 }
 
 ch.onmessage = (ev) => {
@@ -288,29 +294,17 @@ ch.onmessage = (ev) => {
   if (m.type === "slides") {
     slideUrls = m.urls || [];
     slideIdx = 0;
-    paintSlide();
+    if (typeof paintSlide === "function") paintSlide();
     applyState();
   }
-  if (m.type === "layout" && m.layout) applyLayout(m.layout);
+  if (m.type === "layout" && m.layout && typeof applyLayout === "function") applyLayout(m.layout);
 };
-
-function paintSlide() {
-  const img = document.getElementById("slideImg");
-  const win = document.getElementById("slideWin");
-  if (!img || !slideUrls.length || !state.slides) {
-    if (win) win.classList.remove("on");
-    return;
-  }
-  img.src = slideUrls[slideIdx % slideUrls.length];
-  win.classList.add("on");
-  slideIdx++;
-}
-setInterval(paintSlide, 8000);
 
 function tick() {
   const clock = document.getElementById("clock");
   const count = document.getElementById("count");
   if (clock) clock.textContent = EV.subtitle || "";
+  if (!count) return;
   if (!EV.target) {
     count.textContent = "--:--:--";
     return;
@@ -340,16 +334,22 @@ let autoIdx = 0;
 let autoTimer = null;
 function startAuto() {
   clearInterval(autoTimer);
-  const every = Number(document.getElementById("autoEvery").value || 30000);
+  const everyEl = document.getElementById("autoEvery");
+  const every = Number((everyEl && everyEl.value) || 30000);
   autoTimer = setInterval(() => {
     if (showing || queue.length || !state.messages) return;
+    if (Array.isArray(window.EVENT && window.EVENT.wishes) && window.EVENT.wishes.length) {
+      urari = window.EVENT.wishes.slice();
+    }
     const text = urari[autoIdx % urari.length];
     autoIdx++;
     enqueue({ name: "", text, at: Date.now() });
   }, every);
 }
-document.getElementById("autoEvery").addEventListener("change", startAuto);
+const autoEveryEl = document.getElementById("autoEvery");
+if (autoEveryEl) autoEveryEl.addEventListener("change", startAuto);
 startAuto();
 
-// NOTE: remainder of file continues in second push if truncated - full file from local
-console.error("INCOMPLETE_DISPLAY_JS");
+bootFirebase();
+applyState();
+applyEventConfig();
