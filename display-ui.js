@@ -8,6 +8,47 @@ const prizes = [
 const sliceColors = ["#e74c3c", "#f4f7fb", "#7eb6e8", "#f5b942"];
 const sliceInk = ["#fff", "#e74c3c", "#16324f", "#16324f"];
 
+const FREE_BASE = {
+  brand: { w: 640, h: 150 },
+  count: { w: 560, h: 150 },
+  msg: { w: 760, h: 180 },
+  guest: { w: 640, h: 200 },
+  qr: { w: 168, h: 210 },
+  wheel: { w: 200, h: 240 },
+  slides: { w: 420, h: 280 }
+};
+
+function scaleFreeText(el) {
+  if (!el || !el.dataset) return;
+  const key = el.dataset.key;
+  const base = FREE_BASE[key];
+  if (!base) return;
+  const w = el.offsetWidth || parseFloat(el.style.width) || base.w;
+  const h = el.offsetHeight || parseFloat(el.style.height) || base.h;
+  const s = Math.max(0.35, Math.min(3.2, Math.min(w / base.w, h / base.h)));
+  const setFs = (node, px) => { if (node) node.style.fontSize = (px * s) + "px"; };
+  if (key === "brand") {
+    setFs(el.querySelector(".brand"), 18);
+    setFs(el.querySelector(".show-title"), 48);
+    setFs(el.querySelector(".sub"), 14);
+  } else if (key === "count") {
+    setFs(el.querySelector(".countdown"), 96);
+  } else if (key === "msg") {
+    setFs(el.querySelector(".who"), 14);
+    setFs(el.querySelector(".text"), 42);
+  } else if (key === "guest") {
+    setFs(el.querySelector(".tag"), 14);
+    setFs(el.querySelector(".who"), 42);
+    setFs(el.querySelector(".text"), 26);
+  } else if (key === "qr") {
+    setFs(el.querySelector("p"), 12);
+  }
+}
+
+function scaleAllFree() {
+  document.querySelectorAll(".free").forEach(scaleFreeText);
+}
+
 function drawStar(c, cx, cy, r) {
   c.beginPath();
   for (let i = 0; i < 5; i++) {
@@ -228,11 +269,14 @@ function applyLayout(saved) {
     el.style.bottom = "auto";
     if (s.width) el.style.width = s.width;
     if (s.height) el.style.height = s.height;
+    scaleFreeText(el);
   });
+  scaleAllFree();
 }
 try {
   applyLayout(JSON.parse(localStorage.getItem(layoutKey) || "{}"));
 } catch (e) {}
+scaleAllFree();
 
 function saveLayout() {
   const data = {};
@@ -255,6 +299,10 @@ if (editBtn) editBtn.onclick = () => {
   editing = !editing;
   document.body.classList.toggle("editing", editing);
   editBtn.textContent = editing ? "Gata" : "Editează layout";
+  if (!editing) {
+    scaleAllFree();
+    saveLayout();
+  }
 };
 
 document.querySelectorAll(".free").forEach((el) => {
@@ -286,9 +334,11 @@ document.querySelectorAll(".free").forEach((el) => {
       } else {
         if (mode === "both" || mode === "w") el.style.width = Math.max(70, startW + e.clientX - startX) + "px";
         if (mode === "both" || mode === "h") el.style.height = Math.max(46, startH + e.clientY - startY) + "px";
+        scaleFreeText(el);
       }
     }
     function up() {
+      scaleFreeText(el);
       saveLayout();
       removeEventListener("pointermove", move);
       removeEventListener("pointerup", up);
@@ -423,4 +473,10 @@ if (voiceTest) voiceTest.onclick = () => {
   document.getElementById("speakerBtn").classList.remove("off");
   speak(document.getElementById("text").textContent || ((EV.brand || "") + " " + (EV.title || "")).trim() || "La mulți ani!");
 };
+const resetLayoutBtn = document.getElementById("resetLayout");
+if (resetLayoutBtn) resetLayoutBtn.onclick = () => {
+  localStorage.removeItem(layoutKey);
+  location.reload();
+};
 redrawWheels(0);
+scaleAllFree();
