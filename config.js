@@ -11,13 +11,13 @@ window.TUUTI_FIREBASE = {
 };
 window.TUUTI_GUEST_URL = "https://djcioko.github.io/EventInteractive-Pro/?id=test_dj";
 
-/* Implicite — le schimbi din panoul SETĂRI TEXT din aplicație */
+/* MAJORAT BIANCA — mesaje automate */
 window.EVENT = {
   brand: "",
-  title: "EVENIMENT",
-  subtitle: "",
+  title: "MAJORAT BIANCA",
+  subtitle: "La mulți ani!",
   target: "",
-  zeroText: "Să înceapă petrecerea!",
+  zeroText: "La mulți ani, Bianca!",
   msgWho: "MESAJ",
   guestTag: "URARE INVITAT",
   guestWho: "așteptăm",
@@ -25,15 +25,15 @@ window.EVENT = {
   qrLine1: "SCANEAZĂ",
   qrLine2: "URARE + TOMBOLĂ",
   wishes: [
-    "La mulți ani! Să fiți fericiți și sănătoși!",
-    "Să curgă șampania și voie bună!",
-    "Să aveți parte de lumină și iubire!",
-    "Un pahar sus pentru voi!",
-    "Norocul să vă urmărească peste tot!",
-    "Muzică, dans și voie bună toată noaptea!",
-    "Cele mai frumoase amintiri se scriu acum!",
-    "Sănătate, dragoste și voie bună!",
-    "Să fie o seară de neuitat!",
-    "La mulți ani și la mai mare!"
+    "La mulți ani, Bianca! Să-ți fie viața plină de bucurie!",
+    "Bianca, 18 ani — să ai parte de vise împlinite!",
+    "Sărbătorim majoratul Biancăi! Voie bună toată noaptea!",
+    "La mulți ani, Bianca! Sănătate, iubire și succes!",
+    "Un pahar sus pentru Bianca! La mai mare!",
+    "Bianca, să ai un majorat de neuitat!",
+    "La mulți ani! Dans, râs și prieteni adevărați!",
+    "Pentru Bianca: noroc, putere și zile frumoase!",
+    "Să înceapă petrecerea! La mulți ani, Bianca!",
+    "Bianca, lumea e a ta de azi! La mulți ani!"
   ]
 };
