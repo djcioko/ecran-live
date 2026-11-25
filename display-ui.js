@@ -15,7 +15,8 @@ const FREE_BASE = {
   guest: { w: 640, h: 200 },
   qr: { w: 168, h: 210 },
   wheel: { w: 200, h: 240 },
-  slides: { w: 420, h: 280 }
+  slides: { w: 420, h: 280 },
+  cam: { w: 360, h: 240 }
 };
 
 function scaleFreeText(el) {
