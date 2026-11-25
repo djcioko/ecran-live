@@ -5,7 +5,74 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Event Board</title>
   <link rel="stylesheet" href="style.css">
+
+  <style>
+    .cam-window {
+      position: fixed;
+      z-index: 10000;
+      left: 24px;
+      bottom: 24px;
+      width: 360px;
+      height: 240px;
+      min-width: 200px;
+      min-height: 150px;
+      background: #111;
+      border: 1px solid rgba(255, 255, 255, 0.55);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 8px 30px #0008;
+    }
+
+    .cam-window[hidden] {
+      display: none;
+    }
+
+    .cam-bar {
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 8px 0 12px;
+      color: #fff;
+      background: #222;
+      font: 14px sans-serif;
+      cursor: move;
+      user-select: none;
+      touch-action: none;
+    }
+
+    .cam-bar button {
+      color: #fff;
+      background: transparent;
+      border: 0;
+      font-size: 22px;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    #camVideo {
+      display: block;
+      width: 100%;
+      height: calc(100% - 34px);
+      object-fit: cover;
+      background: #000;
+    }
+
+    .cam-resize {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      width: 22px;
+      height: 22px;
+      cursor: nwse-resize;
+      touch-action: none;
+      background:
+        linear-gradient(135deg, transparent 50%, #fff9 50%, #fff9 58%, transparent 58%),
+        linear-gradient(135deg, transparent 67%, #fff9 67%, #fff9 75%, transparent 75%);
+    }
+  </style>
 </head>
+
 <body>
   <div class="night" id="night"></div>
   <img id="bgPhoto" class="bgmedia" alt="">
@@ -19,6 +86,7 @@
     <button type="button" id="hideBtn">Ascunde</button>
     <button type="button" id="editBtn">Editează layout</button>
     <button type="button" id="settingsBtn">Setări text</button>
+
     <label>Fundal
       <select id="bgSelect">
         <option value="auriu" selected>Auriu</option>
@@ -26,14 +94,19 @@
         <option value="cer">Cer</option>
       </select>
     </label>
+
     <label class="filebtn">Upload fundal
       <input id="bgFile" type="file" accept="image/*,video/mp4,video/webm,video/quicktime">
     </label>
+
     <button type="button" id="bgClear">Fundal off</button>
+
     <label class="filebtn">Upload folder poze
       <input id="folderTv" type="file" accept="image/*" webkitdirectory multiple>
     </label>
+
     <button type="button" id="slideBtn">Poze OFF</button>
+
     <label>Mesaje auto
       <select id="autoEvery">
         <option value="15000">15 sec</option>
@@ -42,49 +115,64 @@
         <option value="60000">60 sec</option>
       </select>
     </label>
+
     <button type="button" id="voiceTest">Test voce</button>
     <button type="button" id="resetWheelDock">Reset ruletă</button>
     <button type="button" id="resetLayout">Reset</button>
+    <button type="button" id="camToggle">Camera ON</button>
     <span id="folderInfo">0 poze</span>
   </div>
+
   <button type="button" id="showBtn" class="eye" hidden title="Arată comenzile">👁</button>
   <button type="button" id="speakerBtn" class="speaker off" title="Voce on/off">🔇</button>
   <button type="button" id="fsBtn" class="fs" title="Fullscreen">FS</button>
 
   <div class="slidewin free" id="slideWin" data-key="slides">
     <img id="slideImg" alt="">
-    <i class="handle"></i><i class="handle-e"></i><i class="handle-s"></i>
+    <i class="handle"></i>
+    <i class="handle-e"></i>
+    <i class="handle-s"></i>
   </div>
 
   <div class="free" id="boxBrand" data-key="brand">
     <div class="brand" id="evBrand"> </div>
     <h1 class="show-title" id="evTitle">MAJORAT BIANCA</h1>
     <div class="sub" id="clock"></div>
-    <i class="handle"></i><i class="handle-e"></i><i class="handle-s"></i>
+    <i class="handle"></i>
+    <i class="handle-e"></i>
+    <i class="handle-s"></i>
   </div>
 
   <div class="free" id="countWrap" data-key="count">
     <div class="countdown" id="count">--:--:--</div>
-    <i class="handle"></i><i class="handle-e"></i><i class="handle-s"></i>
+    <i class="handle"></i>
+    <i class="handle-e"></i>
+    <i class="handle-s"></i>
   </div>
 
   <div class="msg free" id="msg" data-key="msg">
     <div class="who" id="msgWho">MESAJ</div>
     <div class="text" id="text">La mulți ani, Bianca!</div>
-    <i class="handle"></i><i class="handle-e"></i><i class="handle-s"></i>
+    <i class="handle"></i>
+    <i class="handle-e"></i>
+    <i class="handle-s"></i>
   </div>
 
   <div class="guestbox free" id="guestBox" data-key="guest">
     <div class="tag" id="guestTag">URARE INVITAT</div>
     <div class="who" id="guestWho">așteptăm</div>
     <div class="text" id="guestText">Mesajul rămâne până la următorul invitat.</div>
-    <i class="handle"></i><i class="handle-e"></i><i class="handle-s"></i>
+    <i class="handle"></i>
+    <i class="handle-e"></i>
+    <i class="handle-s"></i>
   </div>
 
   <button type="button" id="wheelBtn" class="wheel-btn free" data-key="wheel" title="Ruleta">
     <span id="wheelCount">0/10</span>
     <canvas id="wheelCanvas" width="380" height="440"></canvas>
-    <i class="handle"></i><i class="handle-e"></i><i class="handle-s"></i>
+    <i class="handle"></i>
+    <i class="handle-e"></i>
+    <i class="handle-s"></i>
   </button>
 
   <div class="tombola" id="tombola">
@@ -103,7 +191,9 @@
   <div class="qr-corner free" id="qrBox" data-key="qr">
     <div id="qr"></div>
     <p id="qrLines">SCANEAZĂ<br>URARE + TOMBOLĂ</p>
-    <i class="handle"></i><i class="handle-e"></i><i class="handle-s"></i>
+    <i class="handle"></i>
+    <i class="handle-e"></i>
+    <i class="handle-s"></i>
   </div>
 
   <div id="voice-unlock">
@@ -119,20 +209,57 @@
     <div class="settings-card">
       <h2>Setări eveniment</h2>
       <p class="settings-hint">Pentru azi: MAJORAT BIANCA. Poți schimba local, titlu, dată/oră.</p>
-      <label>Nume local / brand<input id="setBrand" type="text" placeholder="ex. Restaurant X"></label>
-      <label>Titlu eveniment<input id="setTitle" type="text" placeholder="MAJORAT BIANCA"></label>
-      <label>Subtitlu<input id="setSub" type="text" placeholder="La mulți ani!"></label>
-      <label>Data și ora evenimentului<input id="setTarget" type="datetime-local"></label>
-      <label>Text când ajunge la zero<input id="setZero" type="text" placeholder="La mulți ani, Bianca!"></label>
-      <label>Etichetă mesaj jos<input id="setMsgWho" type="text" placeholder="MESAJ"></label>
-      <label>Etichetă cutie invitat<input id="setGuestTag" type="text" placeholder="URARE INVITAT"></label>
-      <label>Text QR linia 1<input id="setQr1" type="text" placeholder="SCANEAZĂ"></label>
-      <label>Text QR linia 2<input id="setQr2" type="text" placeholder="URARE + TOMBOLĂ"></label>
+
+      <label>Nume local / brand
+        <input id="setBrand" type="text" placeholder="ex. Restaurant X">
+      </label>
+
+      <label>Titlu eveniment
+        <input id="setTitle" type="text" placeholder="MAJORAT BIANCA">
+      </label>
+
+      <label>Subtitlu
+        <input id="setSub" type="text" placeholder="La mulți ani!">
+      </label>
+
+      <label>Data și ora evenimentului
+        <input id="setTarget" type="datetime-local">
+      </label>
+
+      <label>Text când ajunge la zero
+        <input id="setZero" type="text" placeholder="La mulți ani, Bianca!">
+      </label>
+
+      <label>Etichetă mesaj jos
+        <input id="setMsgWho" type="text" placeholder="MESAJ">
+      </label>
+
+      <label>Etichetă cutie invitat
+        <input id="setGuestTag" type="text" placeholder="URARE INVITAT">
+      </label>
+
+      <label>Text QR linia 1
+        <input id="setQr1" type="text" placeholder="SCANEAZĂ">
+      </label>
+
+      <label>Text QR linia 2
+        <input id="setQr2" type="text" placeholder="URARE + TOMBOLĂ">
+      </label>
+
       <div class="settings-actions">
         <button type="button" id="setSave" class="gold">Salvează</button>
         <button type="button" id="setClose" class="ghost">Închide</button>
       </div>
     </div>
+  </div>
+
+  <div id="camWindow" class="cam-window" hidden>
+    <div id="camBar" class="cam-bar">
+      <span>Camera live</span>
+      <button type="button" id="camClose" aria-label="Oprește camera">×</button>
+    </div>
+    <video id="camVideo" autoplay muted playsinline></video>
+    <div id="camResize" class="cam-resize" aria-label="Redimensionează fereastra"></div>
   </div>
 
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -141,5 +268,125 @@
   <script src="config.js"></script>
   <script src="display.js"></script>
   <script src="display-ui.js"></script>
+
+  <script>
+    (() => {
+      const toggle = document.getElementById("camToggle");
+      const win = document.getElementById("camWindow");
+      const video = document.getElementById("camVideo");
+      const close = document.getElementById("camClose");
+      const bar = document.getElementById("camBar");
+      const resizeHandle = document.getElementById("camResize");
+
+      let stream = null;
+      let drag = null;
+      let resize = null;
+
+      async function startCamera() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          alert("Camera nu este disponibilă. Deschide aplicația prin HTTPS sau localhost.");
+          return;
+        }
+
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: false
+          });
+
+          video.srcObject = stream;
+          win.hidden = false;
+          toggle.textContent = "Camera OFF";
+        } catch (error) {
+          console.error("Camera nu a pornit:", error);
+          alert("Nu s-a putut porni camera. Verifică permisiunea camerei în browser.");
+        }
+      }
+
+      function stopCamera() {
+        if (stream) {
+          stream.getTracks().forEach(track => track.stop());
+          stream = null;
+        }
+
+        video.srcObject = null;
+        win.hidden = true;
+        toggle.textContent = "Camera ON";
+      }
+
+      toggle.addEventListener("click", () => {
+        if (stream) {
+          stopCamera();
+        } else {
+          startCamera();
+        }
+      });
+
+      close.addEventListener("click", stopCamera);
+
+      bar.addEventListener("pointerdown", event => {
+        if (event.target === close) return;
+
+        const rect = win.getBoundingClientRect();
+        drag = {
+          x: event.clientX - rect.left,
+          y: event.clientY - rect.top
+        };
+
+        bar.setPointerCapture(event.pointerId);
+      });
+
+      bar.addEventListener("pointermove", event => {
+        if (!drag) return;
+
+        win.style.left = `${Math.max(0, event.clientX - drag.x)}px`;
+        win.style.top = `${Math.max(0, event.clientY - drag.y)}px`;
+        win.style.right = "auto";
+        win.style.bottom = "auto";
+      });
+
+      bar.addEventListener("pointerup", () => {
+        drag = null;
+      });
+
+      bar.addEventListener("pointercancel", () => {
+        drag = null;
+      });
+
+      resizeHandle.addEventListener("pointerdown", event => {
+        event.preventDefault();
+
+        const rect = win.getBoundingClientRect();
+        resize = {
+          x: event.clientX,
+          y: event.clientY,
+          width: rect.width,
+          height: rect.height
+        };
+
+        resizeHandle.setPointerCapture(event.pointerId);
+      });
+
+      resizeHandle.addEventListener("pointermove", event => {
+        if (!resize) return;
+
+        const width = Math.max(200, resize.width + event.clientX - resize.x);
+        const height = Math.max(150, resize.height + event.clientY - resize.y);
+
+        win.style.width = `${width}px`;
+        win.style.height = `${height}px`;
+      });
+
+      resizeHandle.addEventListener("pointerup", () => {
+        resize = null;
+      });
+
+      resizeHandle.addEventListener("pointercancel", () => {
+        resize = null;
+      });
+
+      window.addEventListener("pagehide", stopCamera);
+    })();
+  </script>
 </body>
 </html>
