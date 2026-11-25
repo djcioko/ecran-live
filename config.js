@@ -9,15 +9,16 @@ window.TUUTI_FIREBASE = {
   appId: "1:102925718812:web:01f5ec325b8234133216d9",
   measurementId: "G-Z0HY95L1PH"
 };
+
 window.TUUTI_GUEST_URL = "https://djcioko.github.io/EventInteractive-Pro/?id=test_dj";
 
-/* MAJORAT BIANCA — mesaje automate */
+/* BOTEZ ALBERT — mesaje automate */
 window.EVENT = {
   brand: "",
-  title: "MAJORAT BIANCA",
-  subtitle: "La mulți ani!",
+  title: "BOTEZ ALBERT",
+  subtitle: "Botezul lui Albert",
   target: "",
-  zeroText: "La mulți ani, Bianca!",
+  zeroText: "Botez fericit, Albert!",
   msgWho: "MESAJ",
   guestTag: "URARE INVITAT",
   guestWho: "așteptăm",
@@ -25,15 +26,16 @@ window.EVENT = {
   qrLine1: "SCANEAZĂ",
   qrLine2: "URARE + TOMBOLĂ",
   wishes: [
-    "La mulți ani, Bianca! Să-ți fie viața plină de bucurie!",
-    "Bianca, 18 ani — să ai parte de vise împlinite!",
-    "Sărbătorim majoratul Biancăi! Voie bună toată noaptea!",
-    "La mulți ani, Bianca! Sănătate, iubire și succes!",
-    "Un pahar sus pentru Bianca! La mai mare!",
-    "Bianca, să ai un majorat de neuitat!",
-    "La mulți ani! Dans, râs și prieteni adevărați!",
-    "Pentru Bianca: noroc, putere și zile frumoase!",
-    "Să înceapă petrecerea! La mulți ani, Bianca!",
-    "Bianca, lumea e a ta de azi! La mulți ani!"
+    "Bine ai venit în lume, Albert! Să ai parte de o viață plină de iubire și bucurii!",
+    "Dragă Albert, să crești sănătos, fericit și înconjurat de oameni dragi!",
+    "Felicitări pentru botezul lui Albert! Să vă umple casa de zâmbete și voie bună!",
+    "O zi specială pentru un băiețel minunat. Botez fericit, Albert!",
+    "Albert, să-ți fie drumul presărat cu iubire, noroc și clipe fericite!",
+    "Astăzi sărbătorim botezul lui Albert și bucuria unei familii minunate!",
+    "Să crești mare și voinic, Albert, și să ai parte de toate lucrurile frumoase!",
+    "Felicitări, Albert! Fie ca fiecare zi să-ți aducă o nouă bucurie!",
+    "Un gând bun și multă iubire pentru Albert, în această zi de neuitat!",
+    "Botez fericit, Albert! Să ai o copilărie senină și o viață plină de lumină!"
   ]
 };
+
