@@ -14,8 +14,8 @@
       bottom: 24px;
       width: 360px;
       height: 240px;
-      min-width: 200px;
-      min-height: 150px;
+      min-width: 140px;
+      min-height: 100px;
       background: #111;
       border: 1px solid rgba(255, 255, 255, 0.55);
       border-radius: 10px;
@@ -58,25 +58,11 @@
       background: #000;
     }
 
-    .cam-resize {
-      position: absolute;
-      right: 0;
-      bottom: 0;
-      width: 22px;
-      height: 22px;
-      cursor: nwse-resize;
-      touch-action: none;
-      z-index: 5;
-      background:
-        linear-gradient(135deg, transparent 50%, #fff9 50%, #fff9 58%, transparent 58%),
-        linear-gradient(135deg, transparent 67%, #fff9 67%, #fff9 75%, transparent 75%);
-    }
-
     .cam-device-select {
-      max-width: 190px;
-      background: rgba(20, 20, 24, 0.85);
+      max-width: 200px;
+      background: rgba(20, 20, 24, 0.9);
       color: #fff;
-      border: 1px solid rgba(255, 255, 255, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.3);
       border-radius: 6px;
       padding: 4px 6px;
     }
@@ -274,7 +260,6 @@
       <button type="button" id="camClose" aria-label="Oprește camera">×</button>
     </div>
     <video id="camVideo" autoplay muted playsinline></video>
-    <div id="camResize" class="cam-resize" aria-label="Redimensionează fereastra"></div>
     <i class="handle"></i>
     <i class="handle-e"></i>
     <i class="handle-s"></i>
@@ -289,245 +274,170 @@
 
   <script>
     (() => {
-      const STORAGE_DEVICE_KEY = "ecran_live_cam_device_id";
-      const STORAGE_LAYOUT_KEY = "ecran_live_cam_layout";
-      const STORAGE_ACTIVE_KEY = "ecran_live_cam_active";
+      const KEY_DEVICE = "ecran_live_cam_device";
+      const KEY_ON = "ecran_live_cam_on";
 
-      const toggle = document.getElementById("camToggle");
+      const toggleBtn = document.getElementById("camToggle");
       const deviceSelect = document.getElementById("camDevice");
       const win = document.getElementById("camWindow");
       const video = document.getElementById("camVideo");
-      const close = document.getElementById("camClose");
+      const closeBtn = document.getElementById("camClose");
       const bar = document.getElementById("camBar");
-      const resizeHandle = document.getElementById("camResize");
-      const resetBtn = document.getElementById("resetLayout");
 
       let stream = null;
       let drag = null;
-      let resize = null;
 
-      function saveLayout() {
-        const rect = win.getBoundingClientRect();
-        if (!rect.width || !rect.height) return;
-        const payload = {
-          left: Math.round(rect.left),
-          top: Math.round(rect.top),
-          width: Math.round(rect.width),
-          height: Math.round(rect.height)
-        };
-        try {
-          localStorage.setItem(STORAGE_LAYOUT_KEY, JSON.stringify(payload));
-        } catch (_) {}
-      }
-
-      function applySavedLayout() {
-        try {
-          const raw = localStorage.getItem(STORAGE_LAYOUT_KEY);
-          if (!raw) return;
-          const saved = JSON.parse(raw);
-          if (typeof saved.left === "number" && typeof saved.top === "number") {
-            win.style.left = `${Math.max(0, saved.left)}px`;
-            win.style.top = `${Math.max(0, saved.top)}px`;
-            win.style.right = "auto";
-            win.style.bottom = "auto";
-          }
-          if (typeof saved.width === "number") {
-            win.style.width = `${Math.max(200, saved.width)}px`;
-          }
-          if (typeof saved.height === "number") {
-            win.style.height = `${Math.max(150, saved.height)}px`;
-          }
-        } catch (_) {}
-      }
-
-      function resetCamLayout() {
-        try {
-          localStorage.removeItem(STORAGE_LAYOUT_KEY);
-        } catch (_) {}
-        win.style.left = "24px";
-        win.style.top = "auto";
-        win.style.right = "auto";
-        win.style.bottom = "24px";
-        win.style.width = "360px";
-        win.style.height = "240px";
-      }
-
-      async function populateDevices(preferredDeviceId) {
+      async function listCameras(preferredId = "") {
         if (!deviceSelect || !navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
-          return;
+          return [];
         }
-
         try {
           const devices = await navigator.mediaDevices.enumerateDevices();
-          const videoDevices = devices.filter(d => d.kind === "videoinput");
-          const savedId = preferredDeviceId || localStorage.getItem(STORAGE_DEVICE_KEY) || "";
+          const cams = devices.filter(d => d.kind === "videoinput");
+          const saved = preferredId || localStorage.getItem(KEY_DEVICE) || "";
 
           deviceSelect.innerHTML = "";
-          if (!videoDevices.length) {
+          if (!cams.length) {
             const opt = document.createElement("option");
             opt.value = "";
             opt.textContent = "Nicio cameră găsită";
             deviceSelect.appendChild(opt);
-            return;
+            return [];
           }
 
-          videoDevices.forEach((dev, idx) => {
+          cams.forEach((cam, idx) => {
             const opt = document.createElement("option");
-            opt.value = dev.deviceId;
-            opt.textContent = dev.label || `Cameră ${idx + 1}`;
+            opt.value = cam.deviceId;
+            opt.textContent = cam.label || `Cameră ${idx + 1}`;
             deviceSelect.appendChild(opt);
           });
 
-          if (videoDevices.some(d => d.deviceId === savedId)) {
-            deviceSelect.value = savedId;
+          if (cams.some(c => c.deviceId === saved)) {
+            deviceSelect.value = saved;
           } else {
-            deviceSelect.value = videoDevices[0].deviceId;
+            deviceSelect.value = cams[0].deviceId;
           }
+          return cams;
         } catch (err) {
-          console.warn("Nu s-au putut lista dispozitivele video:", err);
+          console.warn("Eroare la citirea camerelor:", err);
+          return [];
         }
       }
 
-      async function startCamera(deviceId) {
+      function stopCam(saveOff = true) {
+        if (stream) {
+          stream.getTracks().forEach(t => t.stop());
+          stream = null;
+        }
+        if (video) video.srcObject = null;
+        if (win) win.hidden = true;
+        if (toggleBtn) toggleBtn.textContent = "Camera ON";
+        if (saveOff) {
+          try { localStorage.setItem(KEY_ON, "0"); } catch (_) {}
+        }
+      }
+
+      async function startCam(requestedId = "") {
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-          alert("Camera nu este disponibilă. Deschide aplicația prin HTTPS sau localhost.");
+          alert("Camera necesită HTTPS sau localhost.");
           return;
         }
 
-        const chosenId = (deviceId !== undefined ? deviceId : deviceSelect?.value) || "";
+        stopCam(false);
 
-        if (stream) {
-          stream.getTracks().forEach(track => track.stop());
-          stream = null;
-        }
+        const targetId = requestedId || deviceSelect?.value || localStorage.getItem(KEY_DEVICE) || "";
 
         try {
           const constraints = {
-            video: chosenId ? { deviceId: { exact: chosenId } } : true,
+            video: targetId ? { deviceId: { exact: targetId } } : true,
             audio: false
           };
-
           stream = await navigator.mediaDevices.getUserMedia(constraints);
-          video.srcObject = stream;
+        } catch (_) {
+          stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        }
+
+        if (video) video.srcObject = stream;
+        if (win) {
           win.hidden = false;
-          applySavedLayout();
-          toggle.textContent = "Camera OFF";
-
-          const activeTrack = stream.getVideoTracks()[0];
-          const actualId = activeTrack?.getSettings?.().deviceId || chosenId;
-          if (actualId) {
-            localStorage.setItem(STORAGE_DEVICE_KEY, actualId);
-          }
-          localStorage.setItem(STORAGE_ACTIVE_KEY, "1");
-
-          await populateDevices(actualId);
-        } catch (error) {
-          console.error("Camera nu a pornit:", error);
-          alert("Nu s-a putut porni camera. Verifică permisiunea camerei în browser.");
+          if (typeof scaleFreeText === "function") scaleFreeText(win);
         }
+        if (toggleBtn) toggleBtn.textContent = "Camera OFF";
+
+        const activeTrack = stream.getVideoTracks()[0];
+        const activeId = activeTrack?.getSettings?.().deviceId || "";
+        if (activeId) {
+          try { localStorage.setItem(KEY_DEVICE, activeId); } catch (_) {}
+        }
+        try { localStorage.setItem(KEY_ON, "1"); } catch (_) {}
+
+        await listCameras(activeId || targetId);
       }
 
-      function stopCamera(persistOff = true) {
+      toggleBtn?.addEventListener("click", async () => {
         if (stream) {
-          stream.getTracks().forEach(track => track.stop());
-          stream = null;
-        }
-
-        video.srcObject = null;
-        win.hidden = true;
-        toggle.textContent = "Camera ON";
-
-        if (persistOff) {
-          try {
-            localStorage.setItem(STORAGE_ACTIVE_KEY, "0");
-          } catch (_) {}
-        }
-      }
-
-      toggle.addEventListener("click", () => {
-        if (stream) {
-          stopCamera(true);
+          stopCam(true);
         } else {
-          startCamera(deviceSelect?.value);
+          try {
+            await startCam(deviceSelect?.value || "");
+          } catch (err) {
+            console.error("Eroare pornire cameră:", err);
+            alert("Nu s-a putut porni camera. Verifică permisiunea în browser.");
+          }
         }
       });
 
-      close.addEventListener("click", () => stopCamera(true));
+      closeBtn?.addEventListener("click", () => stopCam(true));
 
-      deviceSelect?.addEventListener("change", (e) => {
-        const selectedId = e.target.value;
-        if (selectedId) {
-          localStorage.setItem(STORAGE_DEVICE_KEY, selectedId);
+      deviceSelect?.addEventListener("change", async (e) => {
+        const id = e.target.value;
+        if (id) {
+          try { localStorage.setItem(KEY_DEVICE, id); } catch (_) {}
         }
         if (stream) {
-          startCamera(selectedId);
+          await startCam(id);
+        }
+      });
+
+      bar?.addEventListener("pointerdown", (e) => {
+        if (document.body.classList.contains("editing")) return;
+        if (e.target === closeBtn || !win) return;
+        const rect = win.getBoundingClientRect();
+        win.style.transform = "none";
+        win.style.left = rect.left + "px";
+        win.style.top = rect.top + "px";
+        win.style.right = "auto";
+        win.style.bottom = "auto";
+        drag = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        bar.setPointerCapture(e.pointerId);
+      });
+
+      bar?.addEventListener("pointermove", (e) => {
+        if (!drag || !win) return;
+        win.style.left = `${Math.max(0, e.clientX - drag.x)}px`;
+        win.style.top = `${Math.max(0, e.clientY - drag.y)}px`;
+      });
+
+      bar?.addEventListener("pointerup", () => {
+        if (drag) {
+          drag = null;
+          if (typeof saveLayout === "function") saveLayout();
         }
       });
 
       navigator.mediaDevices?.addEventListener?.("devicechange", () => {
-        populateDevices(deviceSelect?.value);
+        listCameras(deviceSelect?.value || "").catch(() => {});
       });
 
-      bar.addEventListener("pointerdown", event => {
-        if (event.target === close) return;
-
-        const rect = win.getBoundingClientRect();
-        drag = {
-          x: event.clientX - rect.left,
-          y: event.clientY - rect.top
-        };
-
-        bar.setPointerCapture(event.pointerId);
-      });
-
-      bar.addEventListener("pointermove", event => {
-        if (!drag) return;
-
-        win.style.left = `${Math.max(0, event.clientX - drag.x)}px`;
-        win.style.top = `${Math.max(0, event.clientY - drag.y)}px`;
-        win.style.right = "auto";
-        win.style.bottom = "auto";
-      });
-
-      bar.addEventListener("pointerup", () => {
-        if (drag) {
-          drag = null;
-          saveLayout();
+      document.addEventListener("DOMContentLoaded", async () => {
+        await listCameras();
+        if (localStorage.getItem(KEY_ON) === "1") {
+          startCam().catch(() => {});
         }
       });
 
-      bar.addEventListener("pointercancel", () => {
-        if (drag) {
-          drag = null;
-          saveLayout();
-        }
-      });
-
-      function beginResize(event) {
-        event.preventDefault();
-        event.stopPropagation();
-
-        const rect = win.getBoundingClientRect();
-        resize = {
-          x: event.clientX,
-          y: event.clientY,
-          width: rect.width,
-          height: rect.height
-        };
-
-        const targetEl = event.currentTarget;
-        targetEl.setPointerCapture?.(event.pointerId);
-      }
-
-      function moveResize(event) {
-        if (!resize) return;
-
-        const width = Math.max(200, resize.width + event.clientX - resize.x);
-        const height = Math.max(150, resize.height + event.clientY - resize.y);
-
-        win.style.width = `${width}px`;
-        win.style.height = `${height}px`;
-      }
-
-      function endResize() {
-        if (resize) {
+      window.addEventListener("pagehide", () => stopCam(false));
+    })();
+  </script>
+</body>
+</html>
