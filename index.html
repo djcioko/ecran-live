@@ -66,9 +66,19 @@
       height: 22px;
       cursor: nwse-resize;
       touch-action: none;
+      z-index: 5;
       background:
         linear-gradient(135deg, transparent 50%, #fff9 50%, #fff9 58%, transparent 58%),
         linear-gradient(135deg, transparent 67%, #fff9 67%, #fff9 75%, transparent 75%);
+    }
+
+    .cam-device-select {
+      max-width: 190px;
+      background: rgba(20, 20, 24, 0.85);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 6px;
+      padding: 4px 6px;
     }
   </style>
 </head>
@@ -120,6 +130,11 @@
     <button type="button" id="resetWheelDock">Reset ruletă</button>
     <button type="button" id="resetLayout">Reset</button>
     <button type="button" id="camToggle">Camera ON</button>
+    <label>Cameră
+      <select id="camDevice" class="cam-device-select" aria-label="Selectează camera web">
+        <option value="">Implicită</option>
+      </select>
+    </label>
     <span id="folderInfo">0 poze</span>
   </div>
 
@@ -253,13 +268,16 @@
     </div>
   </div>
 
-  <div id="camWindow" class="cam-window" hidden>
+  <div id="camWindow" class="cam-window free" data-key="cam" hidden>
     <div id="camBar" class="cam-bar">
       <span>Camera live</span>
       <button type="button" id="camClose" aria-label="Oprește camera">×</button>
     </div>
     <video id="camVideo" autoplay muted playsinline></video>
     <div id="camResize" class="cam-resize" aria-label="Redimensionează fereastra"></div>
+    <i class="handle"></i>
+    <i class="handle-e"></i>
+    <i class="handle-s"></i>
   </div>
 
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -271,39 +289,145 @@
 
   <script>
     (() => {
+      const STORAGE_DEVICE_KEY = "ecran_live_cam_device_id";
+      const STORAGE_LAYOUT_KEY = "ecran_live_cam_layout";
+      const STORAGE_ACTIVE_KEY = "ecran_live_cam_active";
+
       const toggle = document.getElementById("camToggle");
+      const deviceSelect = document.getElementById("camDevice");
       const win = document.getElementById("camWindow");
       const video = document.getElementById("camVideo");
       const close = document.getElementById("camClose");
       const bar = document.getElementById("camBar");
       const resizeHandle = document.getElementById("camResize");
+      const resetBtn = document.getElementById("resetLayout");
 
       let stream = null;
       let drag = null;
       let resize = null;
 
-      async function startCamera() {
+      function saveLayout() {
+        const rect = win.getBoundingClientRect();
+        if (!rect.width || !rect.height) return;
+        const payload = {
+          left: Math.round(rect.left),
+          top: Math.round(rect.top),
+          width: Math.round(rect.width),
+          height: Math.round(rect.height)
+        };
+        try {
+          localStorage.setItem(STORAGE_LAYOUT_KEY, JSON.stringify(payload));
+        } catch (_) {}
+      }
+
+      function applySavedLayout() {
+        try {
+          const raw = localStorage.getItem(STORAGE_LAYOUT_KEY);
+          if (!raw) return;
+          const saved = JSON.parse(raw);
+          if (typeof saved.left === "number" && typeof saved.top === "number") {
+            win.style.left = `${Math.max(0, saved.left)}px`;
+            win.style.top = `${Math.max(0, saved.top)}px`;
+            win.style.right = "auto";
+            win.style.bottom = "auto";
+          }
+          if (typeof saved.width === "number") {
+            win.style.width = `${Math.max(200, saved.width)}px`;
+          }
+          if (typeof saved.height === "number") {
+            win.style.height = `${Math.max(150, saved.height)}px`;
+          }
+        } catch (_) {}
+      }
+
+      function resetCamLayout() {
+        try {
+          localStorage.removeItem(STORAGE_LAYOUT_KEY);
+        } catch (_) {}
+        win.style.left = "24px";
+        win.style.top = "auto";
+        win.style.right = "auto";
+        win.style.bottom = "24px";
+        win.style.width = "360px";
+        win.style.height = "240px";
+      }
+
+      async function populateDevices(preferredDeviceId) {
+        if (!deviceSelect || !navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+          return;
+        }
+
+        try {
+          const devices = await navigator.mediaDevices.enumerateDevices();
+          const videoDevices = devices.filter(d => d.kind === "videoinput");
+          const savedId = preferredDeviceId || localStorage.getItem(STORAGE_DEVICE_KEY) || "";
+
+          deviceSelect.innerHTML = "";
+          if (!videoDevices.length) {
+            const opt = document.createElement("option");
+            opt.value = "";
+            opt.textContent = "Nicio cameră găsită";
+            deviceSelect.appendChild(opt);
+            return;
+          }
+
+          videoDevices.forEach((dev, idx) => {
+            const opt = document.createElement("option");
+            opt.value = dev.deviceId;
+            opt.textContent = dev.label || `Cameră ${idx + 1}`;
+            deviceSelect.appendChild(opt);
+          });
+
+          if (videoDevices.some(d => d.deviceId === savedId)) {
+            deviceSelect.value = savedId;
+          } else {
+            deviceSelect.value = videoDevices[0].deviceId;
+          }
+        } catch (err) {
+          console.warn("Nu s-au putut lista dispozitivele video:", err);
+        }
+      }
+
+      async function startCamera(deviceId) {
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
           alert("Camera nu este disponibilă. Deschide aplicația prin HTTPS sau localhost.");
           return;
         }
 
-        try {
-          stream = await navigator.mediaDevices.getUserMedia({
-            video: true,
-            audio: false
-          });
+        const chosenId = (deviceId !== undefined ? deviceId : deviceSelect?.value) || "";
 
+        if (stream) {
+          stream.getTracks().forEach(track => track.stop());
+          stream = null;
+        }
+
+        try {
+          const constraints = {
+            video: chosenId ? { deviceId: { exact: chosenId } } : true,
+            audio: false
+          };
+
+          stream = await navigator.mediaDevices.getUserMedia(constraints);
           video.srcObject = stream;
           win.hidden = false;
+          applySavedLayout();
           toggle.textContent = "Camera OFF";
+
+          const activeTrack = stream.getVideoTracks()[0];
+          const actualId = activeTrack?.getSettings?.().deviceId || chosenId;
+          if (actualId) {
+            localStorage.setItem(STORAGE_DEVICE_KEY, actualId);
+          }
+          localStorage.setItem(STORAGE_ACTIVE_KEY, "1");
+
+          await populateDevices(actualId);
         } catch (error) {
           console.error("Camera nu a pornit:", error);
           alert("Nu s-a putut porni camera. Verifică permisiunea camerei în browser.");
         }
       }
 
-      function stopCamera() {
+      function stopCamera(persistOff = true) {
         if (stream) {
           stream.getTracks().forEach(track => track.stop());
           stream = null;
@@ -312,17 +436,37 @@
         video.srcObject = null;
         win.hidden = true;
         toggle.textContent = "Camera ON";
+
+        if (persistOff) {
+          try {
+            localStorage.setItem(STORAGE_ACTIVE_KEY, "0");
+          } catch (_) {}
+        }
       }
 
       toggle.addEventListener("click", () => {
         if (stream) {
-          stopCamera();
+          stopCamera(true);
         } else {
-          startCamera();
+          startCamera(deviceSelect?.value);
         }
       });
 
-      close.addEventListener("click", stopCamera);
+      close.addEventListener("click", () => stopCamera(true));
+
+      deviceSelect?.addEventListener("change", (e) => {
+        const selectedId = e.target.value;
+        if (selectedId) {
+          localStorage.setItem(STORAGE_DEVICE_KEY, selectedId);
+        }
+        if (stream) {
+          startCamera(selectedId);
+        }
+      });
+
+      navigator.mediaDevices?.addEventListener?.("devicechange", () => {
+        populateDevices(deviceSelect?.value);
+      });
 
       bar.addEventListener("pointerdown", event => {
         if (event.target === close) return;
@@ -346,15 +490,22 @@
       });
 
       bar.addEventListener("pointerup", () => {
-        drag = null;
+        if (drag) {
+          drag = null;
+          saveLayout();
+        }
       });
 
       bar.addEventListener("pointercancel", () => {
-        drag = null;
+        if (drag) {
+          drag = null;
+          saveLayout();
+        }
       });
 
-      resizeHandle.addEventListener("pointerdown", event => {
+      function beginResize(event) {
         event.preventDefault();
+        event.stopPropagation();
 
         const rect = win.getBoundingClientRect();
         resize = {
@@ -364,10 +515,11 @@
           height: rect.height
         };
 
-        resizeHandle.setPointerCapture(event.pointerId);
-      });
+        const targetEl = event.currentTarget;
+        targetEl.setPointerCapture?.(event.pointerId);
+      }
 
-      resizeHandle.addEventListener("pointermove", event => {
+      function moveResize(event) {
         if (!resize) return;
 
         const width = Math.max(200, resize.width + event.clientX - resize.x);
@@ -375,18 +527,7 @@
 
         win.style.width = `${width}px`;
         win.style.height = `${height}px`;
-      });
+      }
 
-      resizeHandle.addEventListener("pointerup", () => {
-        resize = null;
-      });
-
-      resizeHandle.addEventListener("pointercancel", () => {
-        resize = null;
-      });
-
-      window.addEventListener("pagehide", stopCamera);
-    })();
-  </script>
-</body>
-</html>
+      function endResize() {
+        if (resize) {
